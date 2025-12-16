@@ -1,9 +1,13 @@
 FROM registry.access.redhat.com/ubi9/ubi-micro:latest
 
+# Accept the metadata image URL as a build arg
+ARG METADATA_IMAGE_URL
+
 COPY image1/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 LABEL io.konflux.poc.role="primary-image"
 LABEL io.konflux.poc.description="Simple hello world container"
+LABEL io.konflux.poc.metadata-image.url="${METADATA_IMAGE_URL}"
 
 ENTRYPOINT ["/entrypoint.sh"]

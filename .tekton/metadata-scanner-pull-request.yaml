@@ -60,19 +60,21 @@ spec:
             # Inspect the image and extract labels
             INSPECT_OUTPUT=$(skopeo inspect docker://$(params.source-image))
 
-            # Extract the Image 2 digest from labels
-            IMAGE2_DIGEST=$(echo "$INSPECT_OUTPUT" | jq -r '.Labels["io.konflux.poc.metadata-image.digest"] // empty')
+            # Extract the Image 2 URL from labels
+            IMAGE2_URL=$(echo "$INSPECT_OUTPUT" | jq -r '.Labels["io.konflux.poc.metadata-image.url"] // empty')
 
-            if [ -z "$IMAGE2_DIGEST" ]; then
-              echo "ERROR: Could not find io.konflux.poc.metadata-image.digest label"
+            if [ -z "$IMAGE2_URL" ]; then
+              echo "ERROR: Could not find io.konflux.poc.metadata-image.url label"
               exit 1
             fi
 
-            echo "Found Image 2 digest in labels: $IMAGE2_DIGEST"
+            echo "Found Image 2 URL in labels: $IMAGE2_URL"
 
-            # Construct Image 2 URL (same repo, metadata- tag prefix)
-            SOURCE_URL="$(params.source-image)"
-            IMAGE2_URL=$(echo "$SOURCE_URL" | sed 's/:/:metadata-/')
+            # Now inspect Image 2 to get its actual digest
+            IMAGE2_INSPECT=$(skopeo inspect docker://${IMAGE2_URL})
+            IMAGE2_DIGEST=$(echo "$IMAGE2_INSPECT" | jq -r '.Digest')
+
+            echo "Resolved Image 2 digest: $IMAGE2_DIGEST"
 
             echo "Image 2 URL: ${IMAGE2_URL}"
             echo "Image 2 Digest: ${IMAGE2_DIGEST}"

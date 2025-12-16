@@ -8,7 +8,7 @@ spec:
   description: |
     Builds two container images in a single pipeline run.
     Image 2 receives Image 1's digest as build arg.
-    Image 1 gets labeled with Image 2's digest.
+    Image 1 has a label pointing to Image 2's URL (predictable at build time).
     Returns Image 1 as the primary result.
 
   params:
@@ -54,7 +54,7 @@ spec:
     description: Image 2 URL (for reference)
     value: $(tasks.build-image-2.results.IMAGE_URL)
   - name: IMAGE_2_DIGEST
-    description: Image 2 digest (embedded in Image 1 labels)
+    description: Image 2 digest (for reference)
     value: $(tasks.build-image-2.results.IMAGE_DIGEST)
 
   tasks:
@@ -81,7 +81,7 @@ spec:
     - name: basic-auth
       workspace: git-auth
 
-  # Task 2: Build Image 1 (primary image)
+  # Task 2: Build Image 1 (primary image with metadata label)
   - name: build-image-1
     runAfter:
     - git-clone
@@ -101,6 +101,9 @@ spec:
       value: $(params.dockerfile-1)
     - name: CONTEXT
       value: $(params.path-context)
+    - name: BUILD_ARGS
+      value:
+      - METADATA_IMAGE_URL=$(params.output-image-2)
     workspaces:
     - name: source
       workspace: workspace
@@ -132,51 +135,3 @@ spec:
     workspaces:
     - name: source
       workspace: workspace
-
-  # Task 4: Add Image 2's digest as label to Image 1
-  - name: label-image-1
-    runAfter:
-    - build-image-2
-    taskSpec:
-      params:
-      - name: image-1-url
-      - name: image-1-digest
-      - name: image-2-digest
-      results:
-      - name: IMAGE_URL
-        description: Final labeled Image 1 URL
-      - name: IMAGE_DIGEST
-        description: Final labeled Image 1 digest
-      steps:
-      - name: add-labels
-        image: quay.io/skopeo/stable:latest
-        script: |
-          #!/bin/sh
-          set -e
-
-          IMAGE1_REF="$(params.image-1-url)@$(params.image-1-digest)"
-
-          echo "Adding metadata labels to Image 1: ${IMAGE1_REF}"
-
-          # Use skopeo to copy the image and add labels
-          # This creates a new manifest with the additional labels
-          skopeo copy \
-            --format=v2s2 \
-            --digestfile=/tmp/new-digest \
-            --add-label="io.konflux.poc.metadata-image.digest=$(params.image-2-digest)" \
-            --add-label="io.konflux.poc.build.timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            "docker://${IMAGE1_REF}" \
-            "docker://$(params.image-1-url):latest"
-
-          # Output results
-          echo -n "$(params.image-1-url)" > $(results.IMAGE_URL.path)
-          cat /tmp/new-digest > $(results.IMAGE_DIGEST.path)
-
-          echo "Image 1 labeled successfully with Image 2 digest: $(params.image-2-digest)"
-    params:
-    - name: image-1-url
-      value: $(tasks.build-image-1.results.IMAGE_URL)
-    - name: image-1-digest
-      value: $(tasks.build-image-1.results.IMAGE_DIGEST)
-    - name: image-2-digest
-      value: $(tasks.build-image-2.results.IMAGE_DIGEST)
