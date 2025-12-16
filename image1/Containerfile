@@ -8,6 +8,6 @@ RUN chmod +x /entrypoint.sh
 
 LABEL io.konflux.poc.role="primary-image"
 LABEL io.konflux.poc.description="Simple hello world container"
-LABEL io.konflux.poc.metadata-image.url="${METADATA_IMAGE_URL}"
+LABEL io.konflux.poc.metadata-image.url=${METADATA_IMAGE_URL}
 
 ENTRYPOINT ["/entrypoint.sh"]
