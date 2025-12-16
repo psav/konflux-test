@@ -3,7 +3,7 @@ kind: Pipeline
 metadata:
   name: konflux-unified-build
   labels:
-    app.kubernetes.io/part-of: konflux-multi-image-poc
+    app.kubernetes.io/part-of: konflux-konflux-test
 spec:
   description: |
     Builds two container images in a single pipeline run.
