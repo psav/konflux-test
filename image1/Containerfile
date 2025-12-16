@@ -1,0 +1,9 @@
+FROM registry.access.redhat.com/ubi9/ubi-micro:latest
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+LABEL io.konflux.poc.role="primary-image"
+LABEL io.konflux.poc.description="Simple hello world container"
+
+ENTRYPOINT ["/entrypoint.sh"]

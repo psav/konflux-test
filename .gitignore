@@ -1,0 +1,39 @@
+# Build artifacts
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+
+# Container build context artifacts
+.dockerignore
+*.log
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Secrets and credentials (important!)
+*.key
+*.pem
+*.crt
+secrets/
+credentials/
+.env
+.env.local
+
+# Kubernetes/OpenShift temporary files
+*.kubeconfig
+kustomization.yaml.bak
+
+# Pipeline run artifacts
+pipelinerun-*.yaml
+taskrun-*.yaml

@@ -1,0 +1,19 @@
+FROM registry.access.redhat.com/ubi9/ubi-micro:latest
+
+# Build arg will receive Image 1's digest from the pipeline
+ARG IMAGE1_DIGEST
+ARG IMAGE1_URL
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Store Image 1's digest in environment and labels
+ENV IMAGE1_DIGEST=${IMAGE1_DIGEST}
+ENV IMAGE1_URL=${IMAGE1_URL}
+
+LABEL io.konflux.poc.role="metadata-image"
+LABEL io.konflux.poc.description="Proves knowledge of Image 1 digest"
+LABEL io.konflux.poc.image1.digest="${IMAGE1_DIGEST}"
+LABEL io.konflux.poc.image1.url="${IMAGE1_URL}"
+
+ENTRYPOINT ["/entrypoint.sh"]

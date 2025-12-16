@@ -1,0 +1,55 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  annotations:
+    build.appstudio.openshift.io/repo: https://github.com/YOUR-ORG/konflux-multi-image-poc?rev={{revision}}
+    build.appstudio.redhat.com/commit_sha: '{{revision}}'
+    build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
+    build.appstudio.redhat.com/target_branch: '{{target_branch}}'
+    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch == "main"
+    pipelinesascode.tekton.dev/max-keep-runs: '3'
+  labels:
+    appstudio.openshift.io/application: multi-image-poc
+    appstudio.openshift.io/component: app
+    pipelines.appstudio.openshift.io/type: build
+  name: app-on-pull-request
+  namespace: YOUR-TENANT-NAMESPACE
+spec:
+  params:
+  - name: git-url
+    value: '{{source_url}}'
+  - name: revision
+    value: '{{revision}}'
+  - name: output-image-1
+    value: quay.io/YOUR-QUAY-ORG/multi-image-poc-image1:on-pr-{{revision}}
+  - name: output-image-2
+    value: quay.io/YOUR-QUAY-ORG/multi-image-poc-image2:on-pr-{{revision}}
+  - name: dockerfile-1
+    value: image1/Containerfile
+  - name: dockerfile-2
+    value: image2/Containerfile
+  - name: path-context
+    value: .
+
+  pipelineRef:
+    resolver: git
+    params:
+    - name: url
+      value: https://github.com/YOUR-ORG/konflux-multi-image-poc
+    - name: revision
+      value: '{{revision}}'
+    - name: pathInRepo
+      value: pipeline/unified-build.yaml
+
+  workspaces:
+  - name: workspace
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+  - name: git-auth
+    secret:
+      secretName: '{{ git_auth_secret }}'

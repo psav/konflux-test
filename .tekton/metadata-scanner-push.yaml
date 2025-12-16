@@ -1,0 +1,88 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  annotations:
+    build.appstudio.openshift.io/repo: https://github.com/YOUR-ORG/konflux-multi-image-poc?rev={{revision}}
+    build.appstudio.redhat.com/commit_sha: '{{revision}}'
+    build.appstudio.redhat.com/target_branch: '{{target_branch}}'
+    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch == "main"
+    pipelinesascode.tekton.dev/max-keep-runs: '3'
+  labels:
+    appstudio.openshift.io/application: multi-image-poc
+    appstudio.openshift.io/component: metadata-scanner
+    pipelines.appstudio.openshift.io/type: build
+  name: metadata-scanner-on-push
+  namespace: YOUR-TENANT-NAMESPACE
+spec:
+  params:
+  - name: git-url
+    value: '{{source_url}}'
+  - name: revision
+    value: '{{revision}}'
+  - name: source-image
+    value: quay.io/YOUR-QUAY-ORG/multi-image-poc-image1:latest
+
+  pipelineSpec:
+    params:
+    - name: git-url
+    - name: revision
+    - name: source-image
+      description: Image 1 URL to extract metadata from
+
+    results:
+    - name: IMAGE_URL
+      description: Extracted Image 2 URL for scanning
+      value: $(tasks.extract-metadata.results.IMAGE_URL)
+    - name: IMAGE_DIGEST
+      description: Extracted Image 2 digest for scanning
+      value: $(tasks.extract-metadata.results.IMAGE_DIGEST)
+
+    tasks:
+    - name: extract-metadata
+      taskSpec:
+        params:
+        - name: source-image
+        results:
+        - name: IMAGE_URL
+          description: Extracted Image 2 URL
+        - name: IMAGE_DIGEST
+          description: Extracted Image 2 digest
+        steps:
+        - name: extract
+          image: quay.io/skopeo/stable:latest
+          script: |
+            #!/bin/sh
+            set -e
+
+            echo "Inspecting source image: $(params.source-image)"
+
+            # Inspect the image and extract labels
+            INSPECT_OUTPUT=$(skopeo inspect docker://$(params.source-image))
+
+            # Extract the Image 2 digest from labels
+            IMAGE2_DIGEST=$(echo "$INSPECT_OUTPUT" | jq -r '.Labels["io.konflux.poc.metadata-image.digest"] // empty')
+
+            if [ -z "$IMAGE2_DIGEST" ]; then
+              echo "ERROR: Could not find io.konflux.poc.metadata-image.digest label"
+              exit 1
+            fi
+
+            echo "Found Image 2 digest in labels: $IMAGE2_DIGEST"
+
+            # Construct Image 2 URL (assumes same registry/repo pattern)
+            SOURCE_URL="$(params.source-image)"
+            IMAGE2_URL=$(echo "$SOURCE_URL" | sed 's/image1/image2/')
+
+            echo "Image 2 URL: ${IMAGE2_URL}"
+            echo "Image 2 Digest: ${IMAGE2_DIGEST}"
+
+            # Set results for Konflux to scan
+            echo -n "${IMAGE2_URL}" > $(results.IMAGE_URL.path)
+            echo -n "${IMAGE2_DIGEST}" > $(results.IMAGE_DIGEST.path)
+
+            echo "Metadata extraction complete. Konflux will now scan Image 2."
+      params:
+      - name: source-image
+        value: $(params.source-image)
+
+  workspaces: []

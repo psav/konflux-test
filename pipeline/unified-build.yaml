@@ -1,0 +1,182 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: konflux-unified-build
+  labels:
+    app.kubernetes.io/part-of: konflux-multi-image-poc
+spec:
+  description: |
+    Builds two container images in a single pipeline run.
+    Image 2 receives Image 1's digest as build arg.
+    Image 1 gets labeled with Image 2's digest.
+    Returns Image 1 as the primary result.
+
+  params:
+  - name: git-url
+    type: string
+    description: Source repository URL
+  - name: revision
+    type: string
+    description: Git revision to build
+    default: main
+  - name: output-image-1
+    type: string
+    description: Fully qualified output image for Image 1
+  - name: output-image-2
+    type: string
+    description: Fully qualified output image for Image 2
+  - name: dockerfile-1
+    type: string
+    description: Path to Containerfile for Image 1
+    default: image1/Containerfile
+  - name: dockerfile-2
+    type: string
+    description: Path to Containerfile for Image 2
+    default: image2/Containerfile
+  - name: path-context
+    type: string
+    description: Build context directory
+    default: .
+
+  workspaces:
+  - name: workspace
+  - name: git-auth
+    optional: true
+
+  results:
+  - name: IMAGE_URL
+    description: Image 1 URL (primary result for Konflux)
+    value: $(tasks.build-image-1.results.IMAGE_URL)
+  - name: IMAGE_DIGEST
+    description: Image 1 digest (primary result for Konflux)
+    value: $(tasks.build-image-1.results.IMAGE_DIGEST)
+  - name: IMAGE_2_URL
+    description: Image 2 URL (for reference)
+    value: $(tasks.build-image-2.results.IMAGE_URL)
+  - name: IMAGE_2_DIGEST
+    description: Image 2 digest (embedded in Image 1 labels)
+    value: $(tasks.build-image-2.results.IMAGE_DIGEST)
+
+  tasks:
+
+  # Task 1: Clone the repository
+  - name: git-clone
+    taskRef:
+      resolver: bundles
+      params:
+      - name: bundle
+        value: quay.io/konflux-ci/tekton-catalog/task-git-clone:0.1
+      - name: name
+        value: git-clone
+      - name: kind
+        value: Task
+    params:
+    - name: url
+      value: $(params.git-url)
+    - name: revision
+      value: $(params.revision)
+    workspaces:
+    - name: output
+      workspace: workspace
+    - name: basic-auth
+      workspace: git-auth
+
+  # Task 2: Build Image 1 (primary image)
+  - name: build-image-1
+    runAfter:
+    - git-clone
+    taskRef:
+      resolver: bundles
+      params:
+      - name: bundle
+        value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.1
+      - name: name
+        value: buildah
+      - name: kind
+        value: Task
+    params:
+    - name: IMAGE
+      value: $(params.output-image-1)
+    - name: DOCKERFILE
+      value: $(params.dockerfile-1)
+    - name: CONTEXT
+      value: $(params.path-context)
+    workspaces:
+    - name: source
+      workspace: workspace
+
+  # Task 3: Build Image 2 (metadata image with Image 1's digest)
+  - name: build-image-2
+    runAfter:
+    - build-image-1
+    taskRef:
+      resolver: bundles
+      params:
+      - name: bundle
+        value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.1
+      - name: name
+        value: buildah
+      - name: kind
+        value: Task
+    params:
+    - name: IMAGE
+      value: $(params.output-image-2)
+    - name: DOCKERFILE
+      value: $(params.dockerfile-2)
+    - name: CONTEXT
+      value: $(params.path-context)
+    - name: BUILD_ARGS
+      value:
+      - IMAGE1_DIGEST=$(tasks.build-image-1.results.IMAGE_DIGEST)
+      - IMAGE1_URL=$(tasks.build-image-1.results.IMAGE_URL)
+    workspaces:
+    - name: source
+      workspace: workspace
+
+  # Task 4: Add Image 2's digest as label to Image 1
+  - name: label-image-1
+    runAfter:
+    - build-image-2
+    taskSpec:
+      params:
+      - name: image-1-url
+      - name: image-1-digest
+      - name: image-2-digest
+      results:
+      - name: IMAGE_URL
+        description: Final labeled Image 1 URL
+      - name: IMAGE_DIGEST
+        description: Final labeled Image 1 digest
+      steps:
+      - name: add-labels
+        image: quay.io/skopeo/stable:latest
+        script: |
+          #!/bin/sh
+          set -e
+
+          IMAGE1_REF="$(params.image-1-url)@$(params.image-1-digest)"
+
+          echo "Adding metadata labels to Image 1: ${IMAGE1_REF}"
+
+          # Use skopeo to copy the image and add labels
+          # This creates a new manifest with the additional labels
+          skopeo copy \
+            --format=v2s2 \
+            --digestfile=/tmp/new-digest \
+            --add-label="io.konflux.poc.metadata-image.digest=$(params.image-2-digest)" \
+            --add-label="io.konflux.poc.build.timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            "docker://${IMAGE1_REF}" \
+            "docker://$(params.image-1-url):latest"
+
+          # Output results
+          echo -n "$(params.image-1-url)" > $(results.IMAGE_URL.path)
+          cat /tmp/new-digest > $(results.IMAGE_DIGEST.path)
+
+          echo "Image 1 labeled successfully with Image 2 digest: $(params.image-2-digest)"
+    params:
+    - name: image-1-url
+      value: $(tasks.build-image-1.results.IMAGE_URL)
+    - name: image-1-digest
+      value: $(tasks.build-image-1.results.IMAGE_DIGEST)
+    - name: image-2-digest
+      value: $(tasks.build-image-2.results.IMAGE_DIGEST)
