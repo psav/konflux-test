@@ -6,10 +6,10 @@ metadata:
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
     build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
-    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch == "main"
+    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch == "master"
     pipelinesascode.tekton.dev/max-keep-runs: '3'
   labels:
-    appstudio.openshift.io/application: multi-image-poc
+    appstudio.openshift.io/application: konflux-test
     appstudio.openshift.io/component: app
     pipelines.appstudio.openshift.io/type: build
   name: app-on-pull-request
