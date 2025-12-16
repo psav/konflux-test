@@ -41,6 +41,9 @@ spec:
     - name: pathInRepo
       value: pipeline/unified-build.yaml
 
+  taskRunTemplate:
+    serviceAccountName: build-pipeline-app
+
   workspaces:
   - name: workspace
     volumeClaimTemplate:
