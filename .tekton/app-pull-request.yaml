@@ -23,7 +23,7 @@ spec:
   - name: output-image-1
     value: quay.io/redhat-user-workloads/rosa-log-router-tenant/app:on-pr-{{revision}}
   - name: output-image-2
-    value: quay.io/redhat-user-workloads/rosa-log-router-tenant/metadata-scanner:on-pr-{{revision}}
+    value: quay.io/redhat-user-workloads/rosa-log-router-tenant/app:metadata-on-pr-{{revision}}
   - name: dockerfile-1
     value: image1/Containerfile
   - name: dockerfile-2

@@ -70,9 +70,9 @@ spec:
 
             echo "Found Image 2 digest in labels: $IMAGE2_DIGEST"
 
-            # Construct Image 2 URL (assumes same registry/repo pattern)
+            # Construct Image 2 URL (same repo, metadata- tag prefix)
             SOURCE_URL="$(params.source-image)"
-            IMAGE2_URL=$(echo "$SOURCE_URL" | sed 's/\/app:/\/metadata-scanner:/')
+            IMAGE2_URL=$(echo "$SOURCE_URL" | sed 's/:/:metadata-/')
 
             echo "Image 2 URL: ${IMAGE2_URL}"
             echo "Image 2 Digest: ${IMAGE2_DIGEST}"
