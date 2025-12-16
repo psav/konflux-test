@@ -4,7 +4,7 @@ FROM registry.access.redhat.com/ubi9/ubi-micro:latest
 ARG IMAGE1_DIGEST
 ARG IMAGE1_URL
 
-COPY entrypoint.sh /entrypoint.sh
+COPY image2/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # Store Image 1's digest in environment and labels
