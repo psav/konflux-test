@@ -20,7 +20,7 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: source-image
-    value: quay.io/redhat-user-workloads/rosa-log-router-tenant/app:latest
+    value: quay.io/redhat-user-workloads/rosa-log-router-tenant/app:{{revision}}
 
   pipelineSpec:
     params:
