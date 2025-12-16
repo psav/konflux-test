@@ -18,7 +18,7 @@ spec:
   - name: revision
     type: string
     description: Git revision to build
-    default: main
+    default: master
   - name: output-image-1
     type: string
     description: Fully qualified output image for Image 1
