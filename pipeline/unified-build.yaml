@@ -8,7 +8,6 @@ spec:
   description: |
     Builds two container images in a single pipeline run.
     Image 2 receives Image 1's digest as build arg.
-    Image 1 has a label pointing to Image 2's URL (predictable at build time).
     Returns Image 1 as the primary result.
 
   params:
@@ -81,7 +80,7 @@ spec:
     - name: basic-auth
       workspace: git-auth
 
-  # Task 2: Build Image 1 (primary image with metadata label)
+  # Task 2: Build Image 1 (primary image)
   - name: build-image-1
     runAfter:
     - git-clone
@@ -101,9 +100,6 @@ spec:
       value: $(params.dockerfile-1)
     - name: CONTEXT
       value: $(params.path-context)
-    - name: BUILD_ARGS
-      value:
-      - METADATA_IMAGE_URL=$(params.output-image-2)
     workspaces:
     - name: source
       workspace: workspace
