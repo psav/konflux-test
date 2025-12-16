@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
   annotations:
-    build.appstudio.openshift.io/repo: https://github.com/YOUR-ORG/konflux-multi-image-poc?rev={{revision}}
+    build.appstudio.openshift.io/repo: https://github.com/psav/konflux-test?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch == "main"
@@ -12,7 +12,7 @@ metadata:
     appstudio.openshift.io/component: metadata-scanner
     pipelines.appstudio.openshift.io/type: build
   name: metadata-scanner-on-push
-  namespace: YOUR-TENANT-NAMESPACE
+  namespace: rosa-log-router-tenant
 spec:
   params:
   - name: git-url
@@ -20,7 +20,7 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: source-image
-    value: quay.io/YOUR-QUAY-ORG/multi-image-poc-image1:latest
+    value: quay.io/redhat-user-workloads/rosa-log-router-tenant/app:latest
 
   pipelineSpec:
     params:
@@ -71,7 +71,7 @@ spec:
 
             # Construct Image 2 URL (assumes same registry/repo pattern)
             SOURCE_URL="$(params.source-image)"
-            IMAGE2_URL=$(echo "$SOURCE_URL" | sed 's/image1/image2/')
+            IMAGE2_URL=$(echo "$SOURCE_URL" | sed 's/\/app:/\/metadata-scanner:/')
 
             echo "Image 2 URL: ${IMAGE2_URL}"
             echo "Image 2 Digest: ${IMAGE2_DIGEST}"

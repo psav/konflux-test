@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
   annotations:
-    build.appstudio.openshift.io/repo: https://github.com/YOUR-ORG/konflux-multi-image-poc?rev={{revision}}
+    build.appstudio.openshift.io/repo: https://github.com/psav/konflux-test?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
     build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
@@ -13,7 +13,7 @@ metadata:
     appstudio.openshift.io/component: app
     pipelines.appstudio.openshift.io/type: build
   name: app-on-pull-request
-  namespace: YOUR-TENANT-NAMESPACE
+  namespace: rosa-log-router-tenant
 spec:
   params:
   - name: git-url
@@ -21,9 +21,9 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image-1
-    value: quay.io/YOUR-QUAY-ORG/multi-image-poc-image1:on-pr-{{revision}}
+    value: quay.io/redhat-user-workloads/rosa-log-router-tenant/app:on-pr-{{revision}}
   - name: output-image-2
-    value: quay.io/YOUR-QUAY-ORG/multi-image-poc-image2:on-pr-{{revision}}
+    value: quay.io/redhat-user-workloads/rosa-log-router-tenant/metadata-scanner:on-pr-{{revision}}
   - name: dockerfile-1
     value: image1/Containerfile
   - name: dockerfile-2
@@ -35,7 +35,7 @@ spec:
     resolver: git
     params:
     - name: url
-      value: https://github.com/YOUR-ORG/konflux-multi-image-poc
+      value: https://github.com/psav/konflux-test
     - name: revision
       value: '{{revision}}'
     - name: pathInRepo
