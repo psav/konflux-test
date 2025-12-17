@@ -38,13 +38,31 @@ spec:
       value: $(tasks.extract-metadata.results.IMAGE_DIGEST)
     - name: CHAINS-GIT_URL
       description: Git repository URL for provenance
-      value: $(params.git-url)
+      value: $(tasks.git-clone.results.url)
     - name: CHAINS-GIT_COMMIT
       description: Git commit SHA for provenance
-      value: $(params.revision)
+      value: $(tasks.git-clone.results.commit)
 
     tasks:
+    - name: git-clone
+      taskRef:
+        resolver: bundles
+        params:
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-git-clone:0.1
+        - name: name
+          value: git-clone
+        - name: kind
+          value: Task
+      params:
+      - name: url
+        value: $(params.git-url)
+      - name: revision
+        value: $(params.revision)
+
     - name: extract-metadata
+      runAfter:
+      - git-clone
       taskSpec:
         params:
         - name: source-image
