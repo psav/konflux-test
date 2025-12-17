@@ -55,6 +55,12 @@ spec:
   - name: IMAGE_2_DIGEST
     description: Image 2 digest (for reference)
     value: $(tasks.build-image-2.results.IMAGE_DIGEST)
+  - name: CHAINS-GIT_URL
+    description: Git repository URL for provenance
+    value: $(tasks.git-clone.results.url)
+  - name: CHAINS-GIT_COMMIT
+    description: Git commit SHA for provenance
+    value: $(tasks.git-clone.results.commit)
 
   tasks:
 
