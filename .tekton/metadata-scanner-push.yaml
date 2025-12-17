@@ -62,9 +62,10 @@ spec:
 
             echo "Constructed Image 2 URL: $IMAGE2_URL"
 
-            # Now inspect Image 2 to get its actual digest
+            # Now inspect Image 2 to get its actual digest (only the first/main one)
             IMAGE2_DIGEST=$(skopeo inspect docker://${IMAGE2_URL} | \
               grep '"Digest"' | \
+              head -n 1 | \
               sed 's/.*"Digest":[[:space:]]*"\([^"]*\)".*/\1/')
 
             if [ -z "$IMAGE2_DIGEST" ]; then
