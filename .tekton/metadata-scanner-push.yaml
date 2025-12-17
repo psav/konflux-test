@@ -95,6 +95,30 @@ spec:
 
             echo "Constructed Image 2 URL: $IMAGE2_URL"
 
+            # Retry loop: wait for Image 2 to exist (max 10 minutes)
+            # This handles the race condition when both components build in parallel
+            MAX_ATTEMPTS=60
+            ATTEMPT=0
+            while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+              ATTEMPT=$((ATTEMPT+1))
+              echo "Attempt $ATTEMPT/$MAX_ATTEMPTS: Checking if Image 2 exists..."
+
+              if skopeo inspect docker://${IMAGE2_URL} > /dev/null 2>&1; then
+                echo "Image 2 found!"
+                break
+              fi
+
+              if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+                echo "Image 2 not found yet, waiting 10 seconds..."
+                sleep 10
+              fi
+            done
+
+            if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+              echo "ERROR: Image 2 did not appear after $MAX_ATTEMPTS attempts (10 minutes)"
+              exit 1
+            fi
+
             # Now inspect Image 2 to get its actual digest (only the first/main one)
             IMAGE2_DIGEST=$(skopeo inspect docker://${IMAGE2_URL} | \
               grep '"Digest"' | \
