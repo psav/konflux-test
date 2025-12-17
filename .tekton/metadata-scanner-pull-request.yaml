@@ -44,6 +44,10 @@ spec:
       description: Git commit SHA for provenance
       value: $(tasks.git-clone.results.commit)
 
+    workspaces:
+    - name: workspace
+      description: Workspace for git clone (needed for CHAINS results)
+
     tasks:
     - name: git-clone
       taskRef:
@@ -60,6 +64,11 @@ spec:
         value: $(params.git-url)
       - name: revision
         value: $(params.revision)
+      workspaces:
+      - name: output
+        workspace: workspace
+      - name: basic-auth
+        workspace: git-auth
 
     - name: extract-metadata
       runAfter:
@@ -115,4 +124,15 @@ spec:
   taskRunTemplate:
     serviceAccountName: build-pipeline-metadata-scanner
 
-  workspaces: []
+  workspaces:
+  - name: workspace
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+  - name: git-auth
+    secret:
+      secretName: '{{ git_auth_secret }}'
