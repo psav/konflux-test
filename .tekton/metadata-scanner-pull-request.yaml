@@ -37,6 +37,12 @@ spec:
     - name: IMAGE_DIGEST
       description: Extracted Image 2 digest for scanning
       value: $(tasks.extract-metadata.results.IMAGE_DIGEST)
+    - name: CHAINS-GIT_URL
+      description: Git repository URL for provenance
+      value: $(params.git-url)
+    - name: CHAINS-GIT_COMMIT
+      description: Git commit SHA for provenance
+      value: $(params.revision)
 
     tasks:
     - name: extract-metadata
