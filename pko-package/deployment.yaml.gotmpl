@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: konflux-test-app
+  labels:
+    app: konflux-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: konflux-test
+  template:
+    metadata:
+      labels:
+        app: konflux-test
+    spec:
+      containers:
+      - name: app
+        image: "{{.config.imageRegistry}}/app:{{.config.imageTag}}"
+        ports:
+        - containerPort: 8080

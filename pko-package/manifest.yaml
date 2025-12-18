@@ -1,0 +1,28 @@
+apiVersion: manifests.package-operator.run/v1alpha1
+kind: PackageManifest
+metadata:
+  name: konflux-test-app
+spec:
+  scopes:
+  - Namespaced
+  phases:
+  - name: deploy
+  availabilityProbes:
+  - selector:
+      kind:
+        group: apps
+        kind: Deployment
+    probes:
+    - condition:
+        type: Available
+        status: "True"
+  config:
+    openAPIV3Schema:
+      type: object
+      properties:
+        imageTag:
+          type: string
+          description: "Tag for the app image (typically git commit SHA)"
+        imageRegistry:
+          type: string
+          default: "quay.io/redhat-user-workloads/rosa-log-router-tenant"

@@ -20,26 +20,16 @@ spec:
     value: '{{source_url}}'
   - name: revision
     value: '{{revision}}'
-  - name: output-image-1
+  - name: output-image
     value: quay.io/redhat-user-workloads/rosa-log-router-tenant/app:on-pr-{{revision}}
-  - name: output-image-2
-    value: quay.io/redhat-user-workloads/rosa-log-router-tenant/app:metadata-on-pr-{{revision}}
-  - name: dockerfile-1
+  - name: dockerfile
     value: image1/Containerfile
-  - name: dockerfile-2
-    value: image2/Containerfile
   - name: path-context
     value: .
 
   pipelineRef:
-    resolver: git
-    params:
-    - name: url
-      value: https://github.com/psav/konflux-test
-    - name: revision
-      value: '{{revision}}'
-    - name: pathInRepo
-      value: pipeline/unified-build.yaml
+    name: docker-build
+    bundle: quay.io/konflux-ci/tekton-catalog/pipeline-docker-build:latest
 
   taskRunTemplate:
     serviceAccountName: build-pipeline-app
