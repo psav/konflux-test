@@ -28,8 +28,8 @@ spec:
     value: .
 
   pipelineRef:
-    name: docker-build
-    bundle: quay.io/konflux-ci/tekton-catalog/pipeline-docker-build:latest
+    name: docker-build-oci-ta
+    bundle: quay.io/konflux-ci/tekton-catalog/pipeline-docker-build-oci-ta:latest
 
   taskRunTemplate:
     serviceAccountName: build-pipeline-app

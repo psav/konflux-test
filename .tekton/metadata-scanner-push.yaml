@@ -19,10 +19,14 @@ spec:
     value: '{{source_url}}'
   - name: revision
     value: '{{revision}}'
-  - name: output-image
-    value: quay.io/redhat-user-workloads/rosa-log-router-tenant/metadata-scanner:{{revision}}
-  - name: source-path
+  - name: SRC_REPO_URL
+    value: '{{source_url}}'
+  - name: SRC_REF
+    value: '{{revision}}'
+  - name: SRC_PATH
     value: pko-package
+  - name: DST_URL
+    value: quay.io/redhat-user-workloads/rosa-log-router-tenant/metadata-scanner:{{revision}}
 
   pipelineRef:
     name: package-operator-package
