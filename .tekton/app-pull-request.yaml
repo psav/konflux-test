@@ -28,8 +28,14 @@ spec:
     value: .
 
   pipelineRef:
-    name: docker-build-oci-ta
-    bundle: quay.io/konflux-ci/tekton-catalog/pipeline-docker-build-oci-ta:latest
+    resolver: bundles
+    params:
+    - name: bundle
+      value: quay.io/konflux-ci/tekton-catalog/pipeline-docker-build-oci-ta:latest
+    - name: name
+      value: docker-build-oci-ta
+    - name: kind
+      value: Pipeline
 
   taskRunTemplate:
     serviceAccountName: build-pipeline-app

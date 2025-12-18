@@ -30,8 +30,14 @@ spec:
     value: quay.io/redhat-user-workloads/rosa-log-router-tenant/metadata-scanner:on-pr-{{revision}}
 
   pipelineRef:
-    name: package-operator-package
-    bundle: quay.io/konflux-ci/tekton-catalog/pipeline-package-operator-package:latest
+    resolver: bundles
+    params:
+    - name: bundle
+      value: quay.io/konflux-ci/tekton-catalog/pipeline-package-operator-package:latest
+    - name: name
+      value: package-operator-package
+    - name: kind
+      value: Pipeline
 
   taskRunTemplate:
     serviceAccountName: build-pipeline-metadata-scanner
