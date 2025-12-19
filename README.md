@@ -338,4 +338,4 @@ Once this PoC proves successful, the same pattern can be applied to:
 
 ## License
 
-This is a proof of concept for testing purposes and it's working.
+This is a proof of concept for testing purposes.
